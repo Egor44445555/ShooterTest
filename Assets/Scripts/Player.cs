@@ -9,8 +9,8 @@ public class Player : MonoBehaviour
     [SerializeField] LayerMask targetLayer;
     [SerializeField] public Transform weaponPoint;
 
-    public Vector2 lastJoystickDirection;
-    Vector2 lastNonZeroDirection = Vector2.right;
+    [HideInInspector] public Vector2 lastJoystickDirection;
+    [HideInInspector] public Vector2 lastNonZeroDirection = Vector2.right;
 
     Rigidbody2D rb;
     FloatingJoystick joystick;
@@ -24,10 +24,13 @@ public class Player : MonoBehaviour
         joystick = FindObjectOfType<FloatingJoystick>();
     }
 
-    public void Update()
+    void Update()
     {
         Vector2 direction = new Vector2(joystick.Horizontal, joystick.Vertical);
         lastJoystickDirection = direction;
+
+        Weapon weapon = transform.GetComponentInChildren<Weapon>();
+        weapon.target = currentTarget;
 
         if (direction.magnitude > 0.001f)
         {
@@ -41,26 +44,50 @@ public class Player : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
 
+        Vector2 aimDirection;
+
         if (currentTarget != null)
         {
-            direction = (Vector2)currentTarget.position;
-            lastNonZeroDirection = direction.normalized;
+            aimDirection = (currentTarget.position - weapon.transform.position).normalized;
+            weapon.Fire();
+        }
+        else
+        {
+            aimDirection = (direction.magnitude > 0.001f) ? direction.normalized : lastNonZeroDirection;
         }
 
+        RotateWeapon(weapon.transform, aimDirection);
+        UpdateSpriteDirections(aimDirection);
+        FindTarget();
+    }
+
+    void RotateWeapon(Transform weapon, Vector2 direction)
+    {
+        if (direction == Vector2.zero) return;
+
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        
+        if (weapon.GetComponent<SpriteRenderer>() != null)
+        {
+            bool facingLeft = direction.x < 0;            
+            weapon.localEulerAngles = new Vector3(0f, facingLeft ? 180f : 0f, 0f);            
+            weapon.GetChild(0).localEulerAngles = new Vector3(0f, 0f, facingLeft ? -angle : angle);
+        }
+        else
+        {
+            weapon.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        }
+    }
+
+    void UpdateSpriteDirections(Vector2 direction)
+    {
         foreach (SpriteRenderer sprite in transform.GetComponentsInChildren<SpriteRenderer>())
         {
             if (sprite.name != "Gun" && sprite.name != "AK")
             {
-                sprite.flipX = lastNonZeroDirection.x < 0;
-            }
-            else if (sprite.name == "Gun" || sprite.name == "AK")
-            {
-                float targetRotationY = lastNonZeroDirection.x < 0 ? 180f : 0f;
-                sprite.transform.localEulerAngles = new Vector3(0f, targetRotationY, 0f);
+                sprite.flipX = direction.x < 0;
             }
         }
-
-        FindNearestTarget();
     }
 
     public void Action()
@@ -68,7 +95,7 @@ public class Player : MonoBehaviour
         transform.GetComponentInChildren<Weapon>().Fire();
     }
 
-    void FindNearestTarget()
+    void FindTarget()
     {
         Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, detectionRadius, targetLayer);
         float minDistance = Mathf.Infinity;
@@ -90,11 +117,5 @@ public class Player : MonoBehaviour
                 }                
             }
         }
-    }
-    
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
     }
 }

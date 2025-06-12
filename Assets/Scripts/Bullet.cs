@@ -8,29 +8,30 @@ public class Bullet : MonoBehaviour
     [SerializeField] public float damage = 3f;
 
     [HideInInspector] public Transform target;
+    [HideInInspector] public Vector2 fireDirection;
+    [HideInInspector] public Vector2 firePointPosition;
 
     Rigidbody2D rb;
-    Player player;
-    Transform startPoint;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        player = FindObjectOfType<Player>();
-        startPoint = transform;
+        Launch();
     }
-
-    void Update()
+    
+    void Launch()
     {
         Vector2 shootDirection;
 
         if (target != null)
         {
-            shootDirection = (target.position - startPoint.position).normalized;
+            Vector2 targetPos = target.position;
+            Vector2 targetCenter = target.GetComponent<Collider2D>().bounds.center;
+            shootDirection = (targetCenter - firePointPosition).normalized;
         }
         else
         {
-            shootDirection = player.lastJoystickDirection.magnitude > 0.1f ? player.lastJoystickDirection : (Vector2)startPoint.position;
+            shootDirection = fireDirection.normalized;
         }
 
         rb.velocity = shootDirection * speed;
@@ -38,6 +39,11 @@ public class Bullet : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        if (collision.gameObject.GetComponent<Health>() && collision.gameObject.GetComponent<Player>() == null)
+        {
+            collision.gameObject.GetComponent<Health>().TakeDamage(damage);
+        }
+
         Destroy(gameObject);
     }
 }
