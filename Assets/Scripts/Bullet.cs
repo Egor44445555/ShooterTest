@@ -25,7 +25,6 @@ public class Bullet : MonoBehaviour
 
         if (target != null)
         {
-            Vector2 targetPos = target.position;
             Vector2 targetCenter = target.GetComponent<Collider2D>().bounds.center;
             shootDirection = (targetCenter - firePointPosition).normalized;
         }
@@ -44,6 +43,6 @@ public class Bullet : MonoBehaviour
             collision.gameObject.GetComponent<Health>().TakeDamage(damage);
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject);       
     }
 }

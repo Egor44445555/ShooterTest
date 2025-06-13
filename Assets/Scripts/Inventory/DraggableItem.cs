@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
 {
     [HideInInspector] public Item item;
 
@@ -11,18 +11,20 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     CanvasGroup canvasGroup;
     Vector2 originalPosition;
     Vector2 pointerOffset;
+    Vector2? lastTouchPosition;
 
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
-        item = GetComponent<Item>();        
+        item = GetComponent<Item>();
         canvas = FindObjectOfType<Canvas>();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         Inventory.main.lastItem = item;
+        GetComponent<Item>().basePoint = rectTransform.localPosition;
 
         originalPosition = rectTransform.anchoredPosition;
 
@@ -39,7 +41,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             eventData.pressEventCamera,
             out Vector2 localPointerPos
         );
-        
+
         pointerOffset = (Vector2)rectTransform.localPosition - localPointerPos;
     }
 
@@ -51,14 +53,13 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             eventData.pressEventCamera,
             out Vector2 localPointerPosition
         );
-        
+
         rectTransform.localPosition = localPointerPosition + pointerOffset;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         canvasGroup.blocksRaycasts = true;
-
         InventorySlot targetSlot = null;
 
         foreach (var result in eventData.hovered)
@@ -77,6 +78,9 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             if (Inventory.main != null && Inventory.main.CanPlaceItem(item, targetSlot.gridPosition))
             {
                 item.lastPoint = targetSlot.gridPosition;
+                targetSlot.isOccupied = true;
+                targetSlot.currentItem = item;
+                originalPosition = rectTransform.anchoredPosition;
                 Inventory.main.PlaceItem(item, targetSlot.gridPosition);
             }
             else
@@ -94,4 +98,24 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         rectTransform.anchoredPosition = originalPosition;
     }
-} 
+    
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        lastTouchPosition = eventData.position;
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (lastTouchPosition.HasValue)
+        {
+            float maxDistance = 20f;
+
+            if (Vector2.Distance(eventData.position, lastTouchPosition.Value) <= maxDistance)
+            {
+                Inventory.main.removePosition = GetComponent<Item>().occupiedSlots[0].gridPosition;
+                Inventory.main.removeItemInventory = gameObject;                
+                Inventory.main.removeInventoryItemsPopup.SetActive(true);
+            }
+        }
+    }
+}

@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class Weapon : MonoBehaviour
 {
-    [Header("Weapon Settings")]
     [SerializeField] float interval = 0.5f;
-    [SerializeField] float bulletSpeed = 10f;    
     [SerializeField] public Transform firePoint;
     [SerializeField] public GameObject bulletPref;
     [SerializeField] public Transform target;
@@ -44,8 +42,7 @@ public class Weapon : MonoBehaviour
             
             bullet.target = target;
             bullet.firePointPosition = firePoint.position;
-            bullet.fireDirection = firePoint.right;
-            
+            bullet.fireDirection = FindObjectOfType<Player>().aimDirection;            
             nextFireTime = Time.time + interval;
         }
     }

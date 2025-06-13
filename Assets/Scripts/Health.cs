@@ -8,6 +8,7 @@ public class Health : MonoBehaviour
     [SerializeField] public float maxHitPoint = 2f;
     [SerializeField] public GameObject healthBlock;
     [SerializeField] public Image healthBar;
+    [SerializeField] public GameObject dropItem;
 
     [HideInInspector] public bool isDestroyed = false;
     [HideInInspector] public float hitPoint = 2f;
@@ -28,6 +29,12 @@ public class Health : MonoBehaviour
 
         if (hitPoint <= 0 && !isDestroyed)
         {
+            if (dropItem != null)
+            {
+                Vector2 targetCenter = GetComponent<Collider2D>().bounds.center;
+                Instantiate(dropItem, targetCenter, transform.rotation);
+            }
+            
             isDestroyed = true;
             Destroy(gameObject);
         }

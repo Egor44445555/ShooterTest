@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    [SerializeField] public float damage = 5f;
+    [SerializeField] public float intervalAttack = 0.5f;
+    [SerializeField] public float attackDistance = 0.5f;
     [SerializeField] public float speed = 3f;
     [SerializeField] float detectionRadius = 3f;
     [SerializeField] LayerMask targetLayer;
@@ -11,6 +14,8 @@ public class Enemy : MonoBehaviour
     Rigidbody2D rb;
     Animator anim;
     Transform currentTarget;
+    bool attack = false;
+    float nextAttackTime;
 
     void Start()
     {
@@ -20,23 +25,55 @@ public class Enemy : MonoBehaviour
 
     public void Update()
     {
+        FindTarget();
+
         if (currentTarget != null)
         {
-            Vector2 direction = (currentTarget.position - transform.position).normalized;
+            Vector2 targetCenter = currentTarget.GetComponent<Collider2D>().bounds.center;
+            Vector2 direction = (targetCenter - (Vector2)GetComponent<Collider2D>().bounds.center).normalized;
 
             if (direction.magnitude > 0.001f)
             {
                 anim.SetBool("Run", true);
-                rb.velocity = currentTarget.position * speed;
+
+                if (!attack)
+                {
+                    rb.velocity = direction * speed;
+                }
+
+                if (direction.x > 0)
+                {
+                    transform.localScale = new Vector3(1, 1, 1);
+                }
+                else if (direction.x < 0)
+                {
+                    transform.localScale = new Vector3(-1f, 1f, 1f);
+                }
             }
             else
             {
                 anim.SetBool("Run", false);
                 rb.velocity = Vector2.zero;
             }
-        }
 
-        FindTarget();
+            float distance = Vector2.Distance(GetComponent<Collider2D>().bounds.center, targetCenter);
+
+            if (distance <= attackDistance && Time.time >= nextAttackTime)
+            {
+                attack = true;
+                currentTarget.GetComponent<Health>().TakeDamage(damage);
+                nextAttackTime = Time.time + intervalAttack;
+            }
+            else if (distance > attackDistance)
+            {
+                attack = false;
+            }
+        }
+        else
+        {
+            anim.SetBool("Run", false);
+            rb.velocity = Vector2.zero;
+        }
     }
 
     void FindTarget()
@@ -58,7 +95,7 @@ public class Enemy : MonoBehaviour
                 if (transform.GetComponentInChildren<Weapon>())
                 {
                     transform.GetComponentInChildren<Weapon>().target = currentTarget;
-                }                
+                }
             }
         }
     }

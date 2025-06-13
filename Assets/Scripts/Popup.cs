@@ -16,8 +16,14 @@ public class Popup : MonoBehaviour
 
     public void ClosePopup()
     {
-        DestroyAllObjectsOfType<Item>(); 
+        DestroyAllObjectsOfType<Item>();
         GameObject.FindGameObjectWithTag("Popup").SetActive(false);
+        Time.timeScale = 1;
+    }
+
+    public void CloseOnePopup(GameObject popup)
+    {
+        popup.SetActive(false);
         Time.timeScale = 1;
     }
     

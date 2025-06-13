@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,12 +10,13 @@ public class Player : MonoBehaviour
     [SerializeField] LayerMask targetLayer;
     [SerializeField] public Transform weaponPoint;
 
-    [SerializeField] public List<InventoryItem> inventoryItems = new List<InventoryItem>();
     [SerializeField] public int inventorySizeWidth = 5;
     [SerializeField] public int inventorySizeHeight = 3;
+    [SerializeField] public List<InventoryItem> inventoryItems = new List<InventoryItem>();
 
     [HideInInspector] public Vector2 lastJoystickDirection;
     [HideInInspector] public Vector2 lastNonZeroDirection = Vector2.right;
+    [HideInInspector] public Vector2 aimDirection;
 
     Rigidbody2D rb;
     FloatingJoystick joystick;
@@ -48,12 +50,10 @@ public class Player : MonoBehaviour
             rb.velocity = Vector2.zero;
         }
 
-        Vector2 aimDirection;
-
         if (currentTarget != null)
         {
-            aimDirection = (currentTarget.position - weapon.transform.position).normalized;
-            weapon.Fire();
+            Vector3 targetCenter = currentTarget.GetComponent<Collider2D>().bounds.center;
+            aimDirection = (targetCenter - weapon.transform.position).normalized;
         }
         else
         {
@@ -70,16 +70,13 @@ public class Player : MonoBehaviour
         if (direction == Vector2.zero) return;
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        bool facingLeft = direction.x < 0;
 
         if (weapon.GetComponent<SpriteRenderer>() != null)
         {
-            bool facingLeft = direction.x < 0;
-            weapon.localEulerAngles = new Vector3(0f, facingLeft ? 180f : 0f, 0f);
-            weapon.GetChild(0).localEulerAngles = new Vector3(0f, 0f, facingLeft ? -angle : angle);
-        }
-        else
-        {
-            weapon.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            weapon.localScale = new Vector3(facingLeft ? -1f : 1f, 1f, 1f);
+            float correctedAngle = facingLeft ? (180f + angle) : angle;            
+            weapon.localEulerAngles = new Vector3(0, 0, correctedAngle);
         }
     }
 
@@ -87,7 +84,7 @@ public class Player : MonoBehaviour
     {
         foreach (SpriteRenderer sprite in transform.GetComponentsInChildren<SpriteRenderer>())
         {
-            if (sprite.name != "Gun" && sprite.name != "AK")
+            if (sprite.GetComponent<Weapon>() == null)
             {
                 sprite.flipX = direction.x < 0;
             }
@@ -125,10 +122,9 @@ public class Player : MonoBehaviour
     
     void OnTriggerEnter2D(Collider2D other)
     {
-        bool found = false;
-
         if (other.gameObject.CompareTag("Thing"))
         {
+            bool found = false;
             int itemSlotX = 0;
             int itemSlotY = 0;
 
@@ -136,20 +132,10 @@ public class Player : MonoBehaviour
             {
                 for (int y = 0; y < inventorySizeHeight && !found; y++)
                 {
-                    bool match = false;
+                    Vector2Int slotPosition = new Vector2Int(x, y);
+                    InventoryItem occupiedSlotPosition = Array.Find<InventoryItem>(inventoryItems.ToArray(), item => item.gridPosition == slotPosition);
 
-                    foreach (InventoryItem itemInventory in inventoryItems)
-                    {
-                        int slotX = itemInventory.gridPosition.x + x;
-                        int slotY = itemInventory.gridPosition.y + y;
-
-                        if ((slotX + slotY) == (itemInventory.gridPosition.x + itemInventory.gridPosition.y))
-                        {
-                            match = true;
-                        }
-                    }
-
-                    if (!match)
+                    if (occupiedSlotPosition == null)
                     {
                         itemSlotX = x;
                         itemSlotY = y;

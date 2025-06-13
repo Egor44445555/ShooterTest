@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System;
 
 public class Inventory : MonoBehaviour
 {
@@ -10,13 +11,15 @@ public class Inventory : MonoBehaviour
     public GameObject slotPrefab;
     public GameObject wrapInventory;
     public GameObject inventoryItemsPrefab;
+    public GameObject removeInventoryItemsPopup;
 
     [HideInInspector] public Item lastItem;
+    [HideInInspector] public Vector2Int removePosition;
+    [HideInInspector] public GameObject removeItemInventory;
 
     int gridWidth = 5;
     int gridHeight = 5;
     InventorySlot[,] slots;
-    bool isDragging = false;
     Camera mainCamera;
     RectTransform inventoryRect;
     Canvas parentCanvas;
@@ -35,8 +38,8 @@ public class Inventory : MonoBehaviour
         mainCamera = Camera.main;
         inventoryRect = GetComponent<RectTransform>();
         parentCanvas = GetComponentInParent<Canvas>();
-        gridWidth = player.inventorySizeWidth;   
-        gridHeight = player.inventorySizeHeight;   
+        gridWidth = player.inventorySizeWidth;
+        gridHeight = player.inventorySizeHeight;
 
         if (mainCamera.GetComponent<Physics2DRaycaster>() == null)
         {
@@ -76,7 +79,6 @@ public class Inventory : MonoBehaviour
             lastItem.GetComponent<RectTransform>().anchoredPosition = lastItem.basePoint;
         }
 
-        isDragging = false;
         lastItem = null;
     }
 
@@ -128,33 +130,16 @@ public class Inventory : MonoBehaviour
         {
             foreach (InventorySlot slot in item.occupiedSlots)
             {
-                if (slot != null)
-                {
-                    slot.ClearSlot();
-                }
+                slot.ClearSlot();
             }
         }
 
         Vector2 size = item.GetSize();
         List<InventorySlot> slotsToOccupy = new List<InventorySlot>();
 
-        for (int x = 0; x < size.x; x++)
-        {
-            for (int y = 0; y < size.y; y++)
-            {
-                int slotX = position.x + x;
-                int slotY = position.y + y;
-
-                if (slotX < gridWidth && slotY < gridHeight)
-                {
-                    slots[slotX, slotY].SetItem(item);
-                    slotsToOccupy.Add(slots[slotX, slotY]);
-                }
-            }
-        }
-
         PositionItemCorrectly(item, position, size);
 
+        slotsToOccupy.Add(slots[position.x, position.y]);
         item.SetOccupiedSlots(slotsToOccupy.ToArray());
         item.lastPoint = position;
 
@@ -166,19 +151,19 @@ public class Inventory : MonoBehaviour
             }
         }
     }
-    
+
     void PositionItemCorrectly(Item item, Vector2Int position, Vector2 size)
     {
         RectTransform itemRect = item.GetComponent<RectTransform>();
 
         Vector2 gridPosition = new Vector2(position.x, position.y) * cellSize;
-        Vector2 slotCenter = gridPosition + new Vector2(cellSize * 0.5f, cellSize * 0.5f);        
+        Vector2 slotCenter = gridPosition + new Vector2(cellSize * 0.5f, cellSize * 0.5f);
         Vector2 itemOffset = new Vector2(
             (size.x * cellSize) * (0.5f - itemRect.pivot.x),
             (size.y * cellSize) * (0.5f - itemRect.pivot.y)
-        );        
+        );
         Vector2 finalPosition = slotCenter + itemOffset;
-        
+
         if (inventoryRect != null)
         {
             finalPosition -= new Vector2(
@@ -186,7 +171,7 @@ public class Inventory : MonoBehaviour
                 inventoryRect.pivot.y * inventoryRect.rect.height
             );
         }
-        
+
         itemRect.anchoredPosition = finalPosition;
     }
 
@@ -214,11 +199,6 @@ public class Inventory : MonoBehaviour
 
     public void CheckItems()
     {
-        foreach (Item item in FindObjectsOfType<Item>())
-        {
-            Destroy(item);
-        }
-        
         foreach (InventoryItem item in FindObjectOfType<Player>().inventoryItems)
         {
             foreach (InventorySlot slot in FindObjectsOfType<InventorySlot>())
@@ -237,5 +217,12 @@ public class Inventory : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void RemoveItem()
+    {
+        InventoryItem removeItem = Array.Find<InventoryItem>(FindObjectOfType<Player>().inventoryItems.ToArray(), item => item.gridPosition == removePosition);
+        FindObjectOfType<Player>().inventoryItems.Remove(removeItem);
+        Destroy(removeItemInventory);
     }
 }

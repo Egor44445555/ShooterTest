@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 608727895437322460}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.038, y: -0.014, z: 0}
+  m_LocalPosition: {x: 0.052, y: -0.009, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -632,7 +632,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.45631635, y: -0.2740775}
+  m_Offset: {x: -0.45631635, y: -0.22287399}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -643,7 +643,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.16545355, y: 0.42256266}
+  m_Size: {x: 0.16545355, y: 0.5249697}
   m_EdgeRadius: 0
 --- !u!95 &7382057646870859731
 Animator:
@@ -686,15 +686,16 @@ MonoBehaviour:
   weaponPoint: {fileID: 7744675837466962961}
   inventoryItems:
   - name: AK
-    gridPosition: {x: 0, y: 1}
+    gridPosition: {x: 0, y: 2}
     image: {fileID: 21300000, guid: 38fc5967a29874b42b46e2e022dc76bf, type: 3}
   - name: Gun
-    gridPosition: {x: 0, y: 0}
+    gridPosition: {x: 0, y: 1}
     image: {fileID: 21300000, guid: 8dc9f31960bf20c4c930cf9b7d83cdb2, type: 3}
   inventorySizeWidth: 5
   inventorySizeHeight: 3
   lastJoystickDirection: {x: 0, y: 0}
   lastNonZeroDirection: {x: 1, y: 0}
+  aimDirection: {x: 0, y: 0}
 --- !u!114 &6209278895819007558
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -710,6 +711,7 @@ MonoBehaviour:
   maxHitPoint: 40
   healthBlock: {fileID: 1489545300964620505}
   healthBar: {fileID: 8259405319109311252}
+  dropItem: {fileID: 0}
   isDestroyed: 0
   hitPoint: 2
 --- !u!1 &2848580903889661098
@@ -1161,31 +1163,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.5095727
+      value: -0.494
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.20655578
+      value: -0.194
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.24896342
-      objectReference: {fileID: 0}
-    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.9999578
-      objectReference: {fileID: 0}
-    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0.009190947
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1197,6 +1183,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
+      propertyPath: m_ConstrainProportionsScale
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8172211418576753116, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
