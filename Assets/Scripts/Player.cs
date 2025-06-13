@@ -9,6 +9,10 @@ public class Player : MonoBehaviour
     [SerializeField] LayerMask targetLayer;
     [SerializeField] public Transform weaponPoint;
 
+    [SerializeField] public List<InventoryItem> inventoryItems = new List<InventoryItem>();
+    [SerializeField] public int inventorySizeWidth = 5;
+    [SerializeField] public int inventorySizeHeight = 3;
+
     [HideInInspector] public Vector2 lastJoystickDirection;
     [HideInInspector] public Vector2 lastNonZeroDirection = Vector2.right;
 
@@ -66,11 +70,11 @@ public class Player : MonoBehaviour
         if (direction == Vector2.zero) return;
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        
+
         if (weapon.GetComponent<SpriteRenderer>() != null)
         {
-            bool facingLeft = direction.x < 0;            
-            weapon.localEulerAngles = new Vector3(0f, facingLeft ? 180f : 0f, 0f);            
+            bool facingLeft = direction.x < 0;
+            weapon.localEulerAngles = new Vector3(0f, facingLeft ? 180f : 0f, 0f);
             weapon.GetChild(0).localEulerAngles = new Vector3(0f, 0f, facingLeft ? -angle : angle);
         }
         else
@@ -114,8 +118,49 @@ public class Player : MonoBehaviour
                 if (transform.GetComponentInChildren<Weapon>())
                 {
                     transform.GetComponentInChildren<Weapon>().target = currentTarget;
-                }                
+                }
             }
+        }
+    }
+    
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        bool found = false;
+
+        if (other.gameObject.CompareTag("Thing"))
+        {
+            int itemSlotX = 0;
+            int itemSlotY = 0;
+
+            for (int x = 0; x < inventorySizeWidth && !found; x++)
+            {
+                for (int y = 0; y < inventorySizeHeight && !found; y++)
+                {
+                    bool match = false;
+
+                    foreach (InventoryItem itemInventory in inventoryItems)
+                    {
+                        int slotX = itemInventory.gridPosition.x + x;
+                        int slotY = itemInventory.gridPosition.y + y;
+
+                        if ((slotX + slotY) == (itemInventory.gridPosition.x + itemInventory.gridPosition.y))
+                        {
+                            match = true;
+                        }
+                    }
+
+                    if (!match)
+                    {
+                        itemSlotX = x;
+                        itemSlotY = y;
+                        found = true;
+                    }
+                }
+            }
+
+            Vector2Int position = new Vector2Int(itemSlotX, itemSlotY);
+            inventoryItems.Add(new InventoryItem(other.gameObject.name, position, other.gameObject.GetComponent<SpriteRenderer>().sprite));
+            Destroy(other.gameObject);
         }
     }
 }
