@@ -16,7 +16,6 @@ public class Popup : MonoBehaviour
 
     public void ClosePopup()
     {
-        DestroyAllObjectsOfType<Item>();
         GameObject.FindGameObjectWithTag("Popup").SetActive(false);
         Time.timeScale = 1;
     }
@@ -25,15 +24,5 @@ public class Popup : MonoBehaviour
     {
         popup.SetActive(false);
         Time.timeScale = 1;
-    }
-    
-    void DestroyAllObjectsOfType<T>() where T : Component
-    {
-        T[] objects = FindObjectsOfType<T>();
-        
-        foreach (T obj in objects)
-        {
-            Destroy(obj.gameObject);
-        }
     }
 }

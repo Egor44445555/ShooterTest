@@ -12,6 +12,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     Vector2 originalPosition;
     Vector2 pointerOffset;
     Vector2? lastTouchPosition;
+    Vector2Int prevPoint;
 
     void Awake()
     {
@@ -25,6 +26,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     {
         Inventory.main.lastItem = item;
         GetComponent<Item>().basePoint = rectTransform.localPosition;
+        prevPoint = item.lastPoint;
 
         originalPosition = rectTransform.anchoredPosition;
 
@@ -75,13 +77,13 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
         if (targetSlot != null)
         {
-            if (Inventory.main != null && Inventory.main.CanPlaceItem(item, targetSlot.gridPosition))
+            if (Inventory.main != null && Inventory.main.CanPlaceItem(GetComponent<Item>(), targetSlot.gridPosition))
             {
-                item.lastPoint = targetSlot.gridPosition;
+                GetComponent<Item>().lastPoint = targetSlot.gridPosition;
                 targetSlot.isOccupied = true;
-                targetSlot.currentItem = item;
+                targetSlot.currentItem = GetComponent<Item>();
                 originalPosition = rectTransform.anchoredPosition;
-                Inventory.main.PlaceItem(item, targetSlot.gridPosition);
+                Inventory.main.PlaceItem(GetComponent<Item>(), targetSlot.gridPosition, prevPoint);
             }
             else
             {
@@ -112,7 +114,11 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
             if (Vector2.Distance(eventData.position, lastTouchPosition.Value) <= maxDistance)
             {
-                Inventory.main.removePosition = GetComponent<Item>().occupiedSlots[0].gridPosition;
+                if (GetComponent<Item>().occupiedSlots.Length > 0)
+                {
+                    Inventory.main.removePosition = GetComponent<Item>().occupiedSlots[0].gridPosition;
+                }
+                
                 Inventory.main.removeItemInventory = gameObject;                
                 Inventory.main.removeInventoryItemsPopup.SetActive(true);
             }

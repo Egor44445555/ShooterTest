@@ -632,7 +632,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.45631635, y: -0.22287399}
+  m_Offset: {x: -0.45631635, y: -0.28011435}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -643,7 +643,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.16545355, y: 0.5249697}
+  m_Size: {x: 0.16545355, y: 0.41048896}
   m_EdgeRadius: 0
 --- !u!95 &7382057646870859731
 Animator:
@@ -684,15 +684,25 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   weaponPoint: {fileID: 7744675837466962961}
-  inventoryItems:
-  - name: AK
-    gridPosition: {x: 0, y: 2}
-    image: {fileID: 21300000, guid: 38fc5967a29874b42b46e2e022dc76bf, type: 3}
-  - name: Gun
-    gridPosition: {x: 0, y: 1}
-    image: {fileID: 21300000, guid: 8dc9f31960bf20c4c930cf9b7d83cdb2, type: 3}
   inventorySizeWidth: 5
   inventorySizeHeight: 3
+  inventoryItems:
+  - name: BulletproofCloak
+    gridPosition: {x: 1, y: 0}
+    image: {fileID: 21300000, guid: 56f2bbed2ba11cc44a798a3842f08232, type: 3}
+    uniqueId: 1
+  - name: MilitaryHelmet
+    gridPosition: {x: 0, y: 2}
+    image: {fileID: 21300000, guid: c54db0d6b07003541bcb2085899c96c2, type: 3}
+    uniqueId: 2
+  - name: MilitaryHelmet
+    gridPosition: {x: 0, y: 1}
+    image: {fileID: 21300000, guid: c54db0d6b07003541bcb2085899c96c2, type: 3}
+    uniqueId: 3
+  - name: MilitaryHelmet
+    gridPosition: {x: 0, y: 0}
+    image: {fileID: 21300000, guid: c54db0d6b07003541bcb2085899c96c2, type: 3}
+    uniqueId: 4
   lastJoystickDirection: {x: 0, y: 0}
   lastNonZeroDirection: {x: 1, y: 0}
   aimDirection: {x: 0, y: 0}
@@ -1157,6 +1167,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3568994163958403416, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
+      propertyPath: maxbulletCount
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_RootOrder
       value: 7
@@ -1174,6 +1188,14 @@ PrefabInstance:
       value: -0.24896342
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
@@ -1183,10 +1205,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5679565318156810397, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}
-      propertyPath: m_ConstrainProportionsScale
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8172211418576753116, guid: be375f17930bbd74fbdef386f65e24c2, type: 3}

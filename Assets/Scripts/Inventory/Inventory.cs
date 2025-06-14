@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using System.Linq;
 
 public class Inventory : MonoBehaviour
 {
@@ -124,7 +125,7 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public void PlaceItem(Item item, Vector2Int position)
+    public void PlaceItem(Item item, Vector2Int position, Vector2Int prevPosition)
     {
         if (item.occupiedSlots != null)
         {
@@ -133,6 +134,9 @@ public class Inventory : MonoBehaviour
                 slot.ClearSlot();
             }
         }
+
+        slots[prevPosition.x, prevPosition.y].isOccupied = false;
+        slots[prevPosition.x, prevPosition.y].currentItem = null;
 
         Vector2 size = item.GetSize();
         List<InventorySlot> slotsToOccupy = new List<InventorySlot>();
@@ -150,6 +154,22 @@ public class Inventory : MonoBehaviour
                 itemInventory.gridPosition = position;
             }
         }
+
+        for (int i = 0; i < player.inventoryItems.Count; i++)
+        {
+            if (player.inventoryItems[i].uniqueId == item.uniqueId)
+            {
+                player.inventoryItems[i] = new InventoryItem(
+                    item.itemName,
+                    position,
+                    item.itemSprite,
+                    item.uniqueId
+                );
+                break;
+            }
+        }
+
+        JsonSave.main.SavePlayerData(player.inventoryItems.ToArray());
     }
 
     void PositionItemCorrectly(Item item, Vector2Int position, Vector2 size)
@@ -199,30 +219,72 @@ public class Inventory : MonoBehaviour
 
     public void CheckItems()
     {
-        foreach (InventoryItem item in FindObjectOfType<Player>().inventoryItems)
+        PlayerSaveData playerSaveData = JsonSave.main.LoadPlayerData();
+
+        if (playerSaveData != null && playerSaveData.inventoryItem != null)
         {
             foreach (InventorySlot slot in FindObjectsOfType<InventorySlot>())
             {
-                if (item.gridPosition == slot.gridPosition)
+                if (slot.currentItem != null)
                 {
-                    GameObject itemObj = Instantiate(inventoryItemsPrefab, slot.transform.position, slot.transform.rotation, wrapInventory.transform);
-                    Item itemInventory = itemObj.GetComponent<Item>();
-                    itemInventory.name = item.name;
-                    itemInventory.itemName = item.name;
-                    itemInventory.itemSprite = item.image;
-                    itemInventory.GetComponent<Image>().sprite = item.image;
-                    slot.isOccupied = true;
-                    slot.currentItem = itemInventory;
-                    PlaceItem(itemInventory, slot.gridPosition);
+                    Destroy(slot.currentItem.gameObject);
+                    slot.currentItem = null;
+                    slot.isOccupied = false;
                 }
             }
+
+            Dictionary<Vector2, InventorySlot> slotDict = new Dictionary<Vector2, InventorySlot>();
+            foreach (InventorySlot slot in FindObjectsOfType<InventorySlot>())
+            {
+                if (!slotDict.ContainsKey(slot.gridPosition))
+                {
+                    slotDict.Add(slot.gridPosition, slot);
+                }
+            }
+
+            foreach (InventoryItem savedItem in playerSaveData.inventoryItem)
+            {
+                if (slotDict.TryGetValue(savedItem.gridPosition, out InventorySlot targetSlot))
+                {
+                    if (!targetSlot.isOccupied)
+                    {
+                        GameObject newItem = Instantiate(
+                            inventoryItemsPrefab,
+                            targetSlot.transform.position,
+                            targetSlot.transform.rotation,
+                            wrapInventory.transform
+                        );
+
+                        Item itemComponent = newItem.GetComponent<Item>();
+                        
+                        itemComponent.uniqueId = savedItem.uniqueId ?? System.Guid.NewGuid().ToString();
+                        itemComponent.lastPoint = savedItem.gridPosition;
+                        itemComponent.name = savedItem.name;
+                        itemComponent.itemName = savedItem.name;
+                        itemComponent.itemSprite = savedItem.image;
+                        itemComponent.GetComponent<Image>().sprite = savedItem.image;
+
+                        targetSlot.isOccupied = true;
+                        targetSlot.currentItem = itemComponent;
+                    }
+                }
+            }
+
+            FindObjectOfType<Player>().inventoryItems = playerSaveData.inventoryItem
+                .Select(item => new InventoryItem(
+                    item.name, 
+                    item.gridPosition, 
+                    item.image, 
+                    item.uniqueId
+                )).ToList();
         }
     }
 
     public void RemoveItem()
     {
-        InventoryItem removeItem = Array.Find<InventoryItem>(FindObjectOfType<Player>().inventoryItems.ToArray(), item => item.gridPosition == removePosition);
+        InventoryItem removeItem = Array.Find<InventoryItem>(FindObjectOfType<Player>().inventoryItems.ToArray(), item => item.name == removeItemInventory.GetComponent<Item>().itemName);
         FindObjectOfType<Player>().inventoryItems.Remove(removeItem);
         Destroy(removeItemInventory);
+        JsonSave.main.SavePlayerData(FindObjectOfType<Player>().inventoryItems.ToArray());
     }
 }

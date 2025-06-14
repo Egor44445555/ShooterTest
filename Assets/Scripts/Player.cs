@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Player : MonoBehaviour
 {
@@ -28,6 +29,31 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         joystick = FindObjectOfType<FloatingJoystick>();
+
+        PlayerSaveData playerSaveData = JsonSave.main.LoadPlayerData();
+        List<InventoryItem> newInventoryItem = new List<InventoryItem>();
+
+        if (playerSaveData != null)
+        {
+            if (playerSaveData.inventoryItem == null || playerSaveData.inventoryItem.Length == 0)
+            {
+                foreach (InventoryItem item in inventoryItems)
+                {
+                    newInventoryItem.Add(new InventoryItem(item.name + "_" + item.uniqueId, item.gridPosition, item.image, item.uniqueId));
+                }
+            }
+            else
+            {
+                foreach (InventoryItem item in playerSaveData.inventoryItem)
+                {
+                    newInventoryItem.Add(new InventoryItem(item.name + "_" + item.uniqueId, item.gridPosition, item.image, item.uniqueId));
+                }
+            }
+
+            inventoryItems = newInventoryItem;
+        }
+
+        JsonSave.main.SavePlayerData(inventoryItems.ToArray());
     }
 
     void Update()
@@ -75,7 +101,7 @@ public class Player : MonoBehaviour
         if (weapon.GetComponent<SpriteRenderer>() != null)
         {
             weapon.localScale = new Vector3(facingLeft ? -1f : 1f, 1f, 1f);
-            float correctedAngle = facingLeft ? (180f + angle) : angle;            
+            float correctedAngle = facingLeft ? (180f + angle) : angle;
             weapon.localEulerAngles = new Vector3(0, 0, correctedAngle);
         }
     }
@@ -119,34 +145,55 @@ public class Player : MonoBehaviour
             }
         }
     }
-    
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Thing"))
         {
+            Weapon weapon = transform.GetComponentInChildren<Weapon>();
             bool found = false;
-            int itemSlotX = 0;
-            int itemSlotY = 0;
+            Vector2Int freeSlotPosition = Vector2Int.zero;
 
             for (int x = 0; x < inventorySizeWidth && !found; x++)
             {
                 for (int y = 0; y < inventorySizeHeight && !found; y++)
                 {
-                    Vector2Int slotPosition = new Vector2Int(x, y);
-                    InventoryItem occupiedSlotPosition = Array.Find<InventoryItem>(inventoryItems.ToArray(), item => item.gridPosition == slotPosition);
-
-                    if (occupiedSlotPosition == null)
+                    Vector2Int currentPosition = new Vector2Int(x, y);
+                    
+                    bool isOccupied = inventoryItems.Any(item => item.gridPosition == currentPosition);
+                    
+                    if (!isOccupied)
                     {
-                        itemSlotX = x;
-                        itemSlotY = y;
+                        freeSlotPosition = currentPosition;
                         found = true;
                     }
                 }
             }
 
-            Vector2Int position = new Vector2Int(itemSlotX, itemSlotY);
-            inventoryItems.Add(new InventoryItem(other.gameObject.name, position, other.gameObject.GetComponent<SpriteRenderer>().sprite));
+            if (found && other.gameObject.GetComponent<Ammunition>() == null)
+            {
+                inventoryItems.Add(new InventoryItem(other.gameObject.name + "_" + System.Guid.NewGuid().ToString(), freeSlotPosition, other.gameObject.GetComponent<SpriteRenderer>().sprite, System.Guid.NewGuid().ToString()));
+                JsonSave.main.SavePlayerData(inventoryItems.ToArray());
+            }
+
+            if (other.gameObject.GetComponent<Ammunition>())
+            {
+                weapon.bulletCount += other.gameObject.GetComponent<Ammunition>().ammo;
+                weapon.bulletCount = weapon.bulletCount > weapon.maxBulletCount ? weapon.maxBulletCount : weapon.bulletCount;
+                UIManager.main.AmmoCountCheck();
+            }
+
             Destroy(other.gameObject);
         }
+    }
+    
+    InventorySlot FindNearestFreeSlot(Dictionary<Vector2, InventorySlot> slots, Vector2 originalPosition)
+    {
+        var orderedSlots = slots.Values
+            .Where(s => !s.isOccupied)
+            .OrderBy(s => Vector2.Distance(originalPosition, s.gridPosition))
+            .ToList();
+
+        return orderedSlots.FirstOrDefault();
     }
 }

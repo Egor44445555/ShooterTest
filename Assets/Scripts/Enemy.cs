@@ -34,11 +34,15 @@ public class Enemy : MonoBehaviour
 
             if (direction.magnitude > 0.001f)
             {
-                anim.SetBool("Run", true);
-
                 if (!attack)
                 {
+                    anim.SetBool("Attack", false);
+                    anim.SetBool("Run", true);
                     rb.velocity = direction * speed;
+                }
+                else
+                {
+                    anim.SetBool("Attack", true);
                 }
 
                 if (direction.x > 0)
