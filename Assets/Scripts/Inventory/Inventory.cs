@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Linq;
+using TMPro;
 
 public class Inventory : MonoBehaviour
 {
@@ -144,7 +145,7 @@ public class Inventory : MonoBehaviour
         PositionItemCorrectly(item, position, size);
 
         slotsToOccupy.Add(slots[position.x, position.y]);
-        item.SetOccupiedSlots(slotsToOccupy.ToArray());
+        item.SetOccupiedSlots(slotsToOccupy);
         item.lastPoint = position;
 
         foreach (InventoryItem itemInventory in player.inventoryItems)
@@ -223,6 +224,11 @@ public class Inventory : MonoBehaviour
 
         if (playerSaveData != null && playerSaveData.inventoryItem != null)
         {
+            foreach (Item item in FindObjectsOfType<Item>())
+            {
+                Destroy(item.gameObject);
+            }
+
             foreach (InventorySlot slot in FindObjectsOfType<InventorySlot>())
             {
                 if (slot.currentItem != null)
@@ -230,43 +236,49 @@ public class Inventory : MonoBehaviour
                     Destroy(slot.currentItem.gameObject);
                     slot.currentItem = null;
                     slot.isOccupied = false;
+                    slot.count.SetActive(false);
                 }
             }
 
-            Dictionary<Vector2, InventorySlot> slotDict = new Dictionary<Vector2, InventorySlot>();
-            foreach (InventorySlot slot in FindObjectsOfType<InventorySlot>())
-            {
-                if (!slotDict.ContainsKey(slot.gridPosition))
-                {
-                    slotDict.Add(slot.gridPosition, slot);
-                }
-            }
+            Dictionary<Vector2, List<Item>> itemsAtPosition = new Dictionary<Vector2, List<Item>>();
 
             foreach (InventoryItem savedItem in playerSaveData.inventoryItem)
             {
-                if (slotDict.TryGetValue(savedItem.gridPosition, out InventorySlot targetSlot))
+                InventorySlot targetSlot = FindObjectsOfType<InventorySlot>()
+                    .FirstOrDefault(s => s.gridPosition == savedItem.gridPosition);
+
+                if (targetSlot != null)
                 {
-                    if (!targetSlot.isOccupied)
+                    GameObject newItem = Instantiate(
+                        inventoryItemsPrefab,
+                        targetSlot.transform.position,
+                        targetSlot.transform.rotation,
+                        wrapInventory.transform
+                    );
+
+                    Item itemComponent = newItem.GetComponent<Item>();
+                    itemComponent.uniqueId = savedItem.uniqueId ?? System.Guid.NewGuid().ToString();
+                    itemComponent.lastPoint = savedItem.gridPosition;
+                    itemComponent.name = savedItem.name;
+                    itemComponent.itemName = savedItem.name;
+                    itemComponent.itemSprite = savedItem.image;
+                    itemComponent.GetComponent<Image>().sprite = savedItem.image;
+                    itemComponent.occupiedSlots.Add(targetSlot);
+
+                    if (!itemsAtPosition.ContainsKey(savedItem.gridPosition))
                     {
-                        GameObject newItem = Instantiate(
-                            inventoryItemsPrefab,
-                            targetSlot.transform.position,
-                            targetSlot.transform.rotation,
-                            wrapInventory.transform
-                        );
-
-                        Item itemComponent = newItem.GetComponent<Item>();
-                        
-                        itemComponent.uniqueId = savedItem.uniqueId ?? System.Guid.NewGuid().ToString();
-                        itemComponent.lastPoint = savedItem.gridPosition;
-                        itemComponent.name = savedItem.name;
-                        itemComponent.itemName = savedItem.name;
-                        itemComponent.itemSprite = savedItem.image;
-                        itemComponent.GetComponent<Image>().sprite = savedItem.image;
-
-                        targetSlot.isOccupied = true;
-                        targetSlot.currentItem = itemComponent;
+                        itemsAtPosition[savedItem.gridPosition] = new List<Item>();
                     }
+
+                    itemsAtPosition[savedItem.gridPosition].Add(itemComponent);
+                    targetSlot.isOccupied = true;
+                    targetSlot.currentItem = itemComponent;
+
+                    int itemCount = itemsAtPosition[savedItem.gridPosition].Count;
+                    TextMeshProUGUI countSlot = targetSlot.count.GetComponent<TextMeshProUGUI>();
+
+                    targetSlot.count.SetActive(itemCount > 1);
+                    countSlot.text = itemCount.ToString();
                 }
             }
 
@@ -284,6 +296,13 @@ public class Inventory : MonoBehaviour
     {
         InventoryItem removeItem = Array.Find<InventoryItem>(FindObjectOfType<Player>().inventoryItems.ToArray(), item => item.name == removeItemInventory.GetComponent<Item>().itemName);
         FindObjectOfType<Player>().inventoryItems.Remove(removeItem);
+
+        Item item = removeItemInventory.GetComponent<Item>();
+        TextMeshProUGUI countSlot = item.occupiedSlots[0].count.GetComponent<TextMeshProUGUI>();
+        int itemCount = int.Parse(countSlot.text) - 1;
+        item.occupiedSlots[0].count.SetActive(itemCount > 1);
+        countSlot.text = itemCount.ToString();
+
         Destroy(removeItemInventory);
         JsonSave.main.SavePlayerData(FindObjectOfType<Player>().inventoryItems.ToArray());
     }

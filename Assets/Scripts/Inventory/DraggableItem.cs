@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
 {
@@ -72,6 +73,19 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
             if (slot != null)
             {
                 targetSlot = slot;
+                TextMeshProUGUI countSlot = slot.count.GetComponent<TextMeshProUGUI>();
+                int itemCount = int.Parse(countSlot.text) + 1;
+                slot.count.SetActive(itemCount > 1);
+                countSlot.text = itemCount.ToString();
+                break;
+            }
+            else if (itemSlot && itemSlot.itemSprite == GetComponent<Item>().itemSprite && itemSlot.occupiedSlots.Count > 0)
+            {
+                targetSlot = itemSlot.occupiedSlots[0];
+                TextMeshProUGUI countSlot = itemSlot.occupiedSlots[0].count.GetComponent<TextMeshProUGUI>();
+                int itemCount = int.Parse(countSlot.text) + 1;
+                itemSlot.occupiedSlots[0].count.SetActive(itemCount > 1);
+                countSlot.text = itemCount.ToString();
                 break;
             }
         }
@@ -115,7 +129,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
             if (Vector2.Distance(eventData.position, lastTouchPosition.Value) <= maxDistance)
             {
-                if (GetComponent<Item>().occupiedSlots.Length > 0)
+                if (GetComponent<Item>().occupiedSlots.Count > 0)
                 {
                     Inventory.main.removePosition = GetComponent<Item>().occupiedSlots[0].gridPosition;
                 }

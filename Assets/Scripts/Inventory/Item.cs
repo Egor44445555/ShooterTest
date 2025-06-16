@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class Item : MonoBehaviour
 {
     public string itemName;
     public Sprite itemSprite;
-    public InventorySlot[] occupiedSlots;
+    public List<InventorySlot> occupiedSlots = new List<InventorySlot>();
     public string uniqueId;
 
     [HideInInspector] public Vector2Int lastPoint;
@@ -22,7 +23,7 @@ public class Item : MonoBehaviour
         return size;
     }
     
-    public void SetOccupiedSlots(InventorySlot[] slots)
+    public void SetOccupiedSlots(List<InventorySlot> slots)
     {
         occupiedSlots = slots;
     }

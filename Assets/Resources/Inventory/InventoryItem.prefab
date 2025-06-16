@@ -105,7 +105,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemName: AK
-  itemSprite: {fileID: 21300000, guid: 6532bc2c52f179142a7333cc0f5faeda, type: 3}
+  itemSprite: {fileID: 21300000, guid: 38fc5967a29874b42b46e2e022dc76bf, type: 3}
   occupiedSlots: []
   uniqueId: 
   lastPoint: {x: 0, y: 0}
