@@ -67,6 +67,7 @@ public class DraggableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         foreach (var result in eventData.hovered)
         {
             InventorySlot slot = result.gameObject.GetComponent<InventorySlot>();
+            Item itemSlot = result.gameObject.GetComponent<Item>();
 
             if (slot != null)
             {

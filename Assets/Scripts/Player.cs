@@ -33,20 +33,25 @@ public class Player : MonoBehaviour
         PlayerSaveData playerSaveData = JsonSave.main.LoadPlayerData();
         List<InventoryItem> newInventoryItem = new List<InventoryItem>();
 
+        foreach (InventoryItem item in inventoryItems)
+        {
+            item.name = item.name + "_" + item.uniqueId;
+        }
+
         if (playerSaveData != null)
         {
             if (playerSaveData.inventoryItem == null || playerSaveData.inventoryItem.Length == 0)
             {
                 foreach (InventoryItem item in inventoryItems)
                 {
-                    newInventoryItem.Add(new InventoryItem(item.name + "_" + item.uniqueId, item.gridPosition, item.image, item.uniqueId));
+                    newInventoryItem.Add(new InventoryItem(item.name, item.gridPosition, item.image, item.uniqueId));
                 }
             }
             else
             {
                 foreach (InventoryItem item in playerSaveData.inventoryItem)
                 {
-                    newInventoryItem.Add(new InventoryItem(item.name + "_" + item.uniqueId, item.gridPosition, item.image, item.uniqueId));
+                    newInventoryItem.Add(new InventoryItem(item.name, item.gridPosition, item.image, item.uniqueId));
                 }
             }
 
