@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     [SerializeField] float detectionRadius = 3f;
     [SerializeField] LayerMask targetLayer;
     [SerializeField] public Transform weaponPoint;
+    [SerializeField] public GameObject[] weapons;
 
     [SerializeField] public int inventorySizeWidth = 5;
     [SerializeField] public int inventorySizeHeight = 3;
@@ -23,6 +24,9 @@ public class Player : MonoBehaviour
     FloatingJoystick joystick;
     Animator anim;
     Transform currentTarget;
+    int currentWeapon = 0;
+    float correctedAngleWeapon;
+    Vector3 basedScaleWeapon;
 
     void Start()
     {
@@ -32,6 +36,8 @@ public class Player : MonoBehaviour
 
         PlayerSaveData playerSaveData = JsonSave.main.LoadPlayerData();
         List<InventoryItem> newInventoryItem = new List<InventoryItem>();
+
+        basedScaleWeapon = transform.GetComponentInChildren<Weapon>().transform.localScale;
 
         foreach (InventoryItem item in inventoryItems)
         {
@@ -105,9 +111,9 @@ public class Player : MonoBehaviour
 
         if (weapon.GetComponent<SpriteRenderer>() != null)
         {
-            weapon.localScale = new Vector3(facingLeft ? -1f : 1f, 1f, 1f);
-            float correctedAngle = facingLeft ? (180f + angle) : angle;
-            weapon.localEulerAngles = new Vector3(0, 0, correctedAngle);
+            weapon.localScale = basedScaleWeapon;
+            weapon.localEulerAngles = new Vector3(0, 0, angle);
+            weapon.localScale = new Vector3(weapon.localScale.x, facingLeft ? -weapon.localScale.y : weapon.localScale.y, weapon.localScale.z);
         }
     }
 
@@ -125,6 +131,24 @@ public class Player : MonoBehaviour
     public void Action()
     {
         transform.GetComponentInChildren<Weapon>().Fire();
+    }
+
+    public void ChangeWeapon()
+    {
+        currentWeapon = (currentWeapon >= weapons.Length - 1) ? 0 : currentWeapon + 1;
+
+        Weapon oldWeapon = transform.GetComponentInChildren<Weapon>();
+        Vector3 oldPosition = oldWeapon.transform.position;
+        
+        Vector2 currentAimDirection = aimDirection;
+        
+        Destroy(oldWeapon.gameObject);
+        
+        GameObject newWeapon = Instantiate(weapons[currentWeapon], oldPosition, Quaternion.identity, transform);
+        
+        newWeapon.transform.localScale = Vector3.one;
+        newWeapon.transform.localRotation = Quaternion.identity;        
+        RotateWeapon(newWeapon.transform, currentAimDirection);
     }
 
     void FindTarget()

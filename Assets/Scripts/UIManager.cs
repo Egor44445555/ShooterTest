@@ -48,6 +48,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ChangeWeapon()
+    {
+        if (player != null)
+        {
+            player.ChangeWeapon();
+        }
+    }
+
     public void RestartGame()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
